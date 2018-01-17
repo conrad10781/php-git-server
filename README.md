@@ -27,27 +27,38 @@ if (PHP_SAPI == "cli-server") {
     }
 }
 
-// Both of the following could be better handled with phpdotenv 
-
 // Define source path ( built in PHP server doesn't like relative paths )
 defined('SOURCE_PATH')
 || define('SOURCE_PATH', (getenv('SOURCE_PATH') ? getenv('SOURCE_PATH') : dirname(__DIR__)));
 
 defined('REPOSITORY_PATH')
-|| define('REPOSITORY_PATH', (getenv('REPOSITORY_PATH') ? getenv('REPOSITORY_PATH') : "/path/to/directory/holding/repositories/without/trailing/slash"));
+|| define('REPOSITORY_PATH', (getenv('REPOSITORY_PATH') ? getenv('REPOSITORY_PATH') : "/tmp/git-repositories"));
 
 $loader = require SOURCE_PATH . "/vendor/autoload.php";
+
+$rcsGitServer = new \RCS\Git\Server();
+
+$serverAuthBackend = new \Sabre\DAV\Auth\Backend\BasicCallBack(function($user, $pass){
+    $args = [$user, $pass];
+    error_log("args: " . print_r($args, true) );
+    return true;
+});
+
+$serverAuthPlugin  = new \Sabre\DAV\Auth\Plugin($serverAuthBackend);
+   
+// OPTIONALLY, you can add authentication this way     
+// $rcsGitServer->addServerPlugin($serverAuthPlugin);
 
 $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
 
     // This can also be a single addRoute(['PROPFIND','MKCOL',....])
-    $r->addRoute('PROPFIND', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('MKCOL', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('LOCK', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('PUT', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('UNLOCK', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('GET', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
-    $r->addRoute('MOVE', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('PROPFIND', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('MKCOL', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('LOCK', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('PUT', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('UNLOCK', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('GET', '/{repository}.git/[{path:.+}]', 'webdav');
+    $r->addRoute('MOVE', '/{repository}.git/[{path:.+}]', 'webdav');
     
 });
 
@@ -77,7 +88,10 @@ switch ($routeInfo[0]) {
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
         // ... call $handler with $vars
-        call_user_func($handler, $vars);
+        
+        // list($class, $method) = explode(":", $handler, 2);
+        // call_user_func_array(array(new $class, $method), $vars);
+        call_user_func(array($rcsGitServer, $handler), $vars);
         
         break;
 }
@@ -87,5 +101,11 @@ if (PHP_SAPI == "cli-server") {
     error_log($_SERVER["REQUEST_METHOD"] . "::" . $_SERVER["REQUEST_URI"]."\n");
 }
 
+```
+
+This can be tested with PHP's built in server using ( you can substitute 8888 for whatever port you want ):
+
+```php
+php -S localhost:8888 -t public index.php
 ```
 
