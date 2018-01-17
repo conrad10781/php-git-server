@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-          "RCS\\Git": "src"
+          "RCS\\Git\\": "src"
         }
     }
 }
