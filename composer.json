@@ -1,0 +1,28 @@
+{
+    "name": "rcs_us/php-git-server",
+    "type": "library",
+    "description": "DAV based PHP based Git server. No dependencies on git command.",
+    "keywords": ["php", "git", "server", "php git server"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matthew Rice",
+            "email": "mrice@rcs.us",
+            "homepage": "https://www.rcs.us",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php" : "^5.5 || ^7.0",
+        "nikic/fast-route": "^1.2",
+        "sabre/dav": "~3.2.0"
+    },
+    "suggest": {
+        "vlucas/phpdotenv^2.4": "Better way to handle variables"
+    },
+    "autoload": {
+        "psr-4": {
+          "RCS\\Git": "src"
+        }
+    }
+}

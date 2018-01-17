@@ -27,22 +27,27 @@ if (PHP_SAPI == "cli-server") {
     }
 }
 
-// // Define source path ( built in PHP server doesn't like relative paths )
+// Both of the following could be better handled with phpdotenv 
+
+// Define source path ( built in PHP server doesn't like relative paths )
 defined('SOURCE_PATH')
 || define('SOURCE_PATH', (getenv('SOURCE_PATH') ? getenv('SOURCE_PATH') : dirname(__DIR__)));
+
+defined('REPOSITORY_PATH')
+|| define('REPOSITORY_PATH', (getenv('REPOSITORY_PATH') ? getenv('REPOSITORY_PATH') : "/path/to/directory/holding/repositories/without/trailing/slash"));
 
 $loader = require SOURCE_PATH . "/vendor/autoload.php";
 
 $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
 
-    // This can also be a single addRoute(['PROPFIND','MKCLOL',....])
-    $r->addRoute('PROPFIND', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('MKCOL', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('LOCK', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('PUT', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('UNLOCK', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('GET', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
-    $r->addRoute('MOVE', '/{repository}.git/[{path:.+}]', '\GitServer::webdav');
+    // This can also be a single addRoute(['PROPFIND','MKCOL',....])
+    $r->addRoute('PROPFIND', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('MKCOL', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('LOCK', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('PUT', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('UNLOCK', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('GET', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
+    $r->addRoute('MOVE', '/{repository}.git/[{path:.+}]', '\RCS\Git\Server::webdav');
     
 });
 
